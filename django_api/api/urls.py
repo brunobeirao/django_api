@@ -13,12 +13,9 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url, include
-from django.contrib import admin
-from django_api import urls
-
-app_name = 'django-api'
+from django.conf.urls import url
+from django_api.api.views import Start
 
 urlpatterns = [
-    url(r'^calls/?', include('django_api.api.urls')),
+    url(r'^details', Start.as_view(), name='post-start'),
 ]
