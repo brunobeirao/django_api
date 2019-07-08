@@ -14,8 +14,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url
-from django_api.api.views import Start
+from django_api.api.views import Call, DataUploadView
 
 urlpatterns = [
-    url(r'^details', Start.as_view(), name='post-start'),
+    # url(r'^details', Call.as_view(), name='post-start'),
+    url(r'^data_upload', DataUploadView.as_view()),
+    url(r'^details', Call.as_view(), name='post-start'),
 ]
