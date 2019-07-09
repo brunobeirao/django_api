@@ -1,13 +1,13 @@
 {
-  "call_id": 74,
+  "call_id": 69,
   "start": {
     "type": "start",
-    "record_timestamp": "2018-02-28T21:57:13Z",
+    "record_timestamp": "2017-12-13T03:57:13Z",
     "source": 99988526423,
     "destination": 9933468278
   },
   "stop": {
     "type": "stop",
-    "record_timestamp": "2018-03-01T22:10:56Z"
+    "record_timestamp": "2017-12-14T20:10:56Z"
   }
 }
