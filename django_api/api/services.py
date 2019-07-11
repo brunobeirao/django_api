@@ -25,18 +25,23 @@ class ApiService:
         if days.days != 0:
             start_record += timedelta(days=days.days)
             if start_record.hour < 6:
-                start_date = datetime.strptime(self.stop['record_timestamp'], "%Y-%m-%dT%H:%M:%SZ").replace(hour=6)
+                start_date = datetime.strptime(str(start_record), "%Y-%m-%d %H:%M:%S+00:00").replace(hour=6, minute=00, second=00)
             elif start_record.hour > 22:
-                start_date = datetime.strptime(self.stop['record_timestamp'], "%Y-%m-%dT%H:%M:%SZ").replace(hour=22)
+                start_date = datetime.strptime(str(start_record), "%Y-%m-%dT%H:%M:%SZ").replace(hour=22, minute=00, second=00)
+            else:
+                start_date = datetime.strptime(str(start_record), "%Y-%m-%dT%H:%M:%SZ")
 
             if stop_record.hour < 6:
-                stop_date = datetime.strptime(self.stop['record_timestamp'], "%Y-%m-%dT%H:%M:%SZ").replace(hour=6)
+                stop_date = datetime.strptime(self.stop['record_timestamp'], "%Y-%m-%dT%H:%M:%SZ").replace(hour=6, minute=00, second=00)
             elif stop_record.hour > 22:
-                stop_date = datetime.strptime(self.stop['record_timestamp'], "%Y-%m-%dT%H:%M:%SZ").replace(hour=22)
+                stop_date = datetime.strptime(self.stop['record_timestamp'], "%Y-%m-%dT%H:%M:%SZ").replace(hour=22, minute=00, second=00)
+            else:
+                stop_date = datetime.strptime(self.stop['record_timestamp'], "%Y-%m-%dT%H:%M:%SZ")
 
-        # 1 dia = 16h taxada mais a diferença do start_date e stop_date
+        # 1 dia = 16h taxada mais a diferença do start_date e stop_date,
+            
 
-        seconds = (stop_record - start_record).total_seconds()
+            seconds = (stop_date - start_date).total_seconds()
         #
         # minutes = seconds / 60
 
