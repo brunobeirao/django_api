@@ -11,14 +11,15 @@ from .serializers import CallsApiSerializer, CallUploadSerializer
 import json
 
 
-class Call(APIView):
+class CallProcess(APIView):
     @staticmethod
     def post(request):
         serializer = CallsApiSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        # serializer.is_valid(raise_exception=True)
+        # serializer.save()
         api = ApiService(request.data)
-        api.calculate_bills()
+        api.save_start_call()
+        # price = api.calculate_bills()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     #
     # @staticmethod
@@ -31,6 +32,17 @@ class Call(APIView):
     #     api = ApiService(request.data)
     #     serializer = CallsApiSerializer(api)
     #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class CallStop(APIView):
+    @staticmethod
+    def post(request):
+        serializer = CallsApiSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        api = ApiService(request.data)
+        price = api.calculate_bills()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class DataUploadView(generics.ListCreateAPIView):

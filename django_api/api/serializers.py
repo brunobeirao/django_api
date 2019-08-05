@@ -1,18 +1,5 @@
 from rest_framework import serializers
-from .models import Call, StartCallRecord, StopCallRecord, CallBills
-
-
-class StartSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StartCallRecord
-        fields = ('id', 'record_timestamp', 'source', 'destination')
-
-
-class StopSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StopCallRecord
-        fields = ('id', 'record_timestamp')
-
+from .models import Call, CallBills
 
 class BillsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -21,19 +8,20 @@ class BillsSerializer(serializers.ModelSerializer):
 
 
 class CallsApiSerializer(serializers.ModelSerializer):
-    start = StartSerializer(many=False)
-    stop = StopSerializer(many=False)
+    print("destination")
+    # start = StartSerializer(many=False)
+    # stop = StopSerializer(many=False)
 
     class Meta:
         model = Call
-        fields = '__all__'
+        fields = 'id', 'record_start', 'record_stop', 'source', 'destination'
 
     def create(self, validated_data):
-        start = validated_data.pop('start')
-        stop = validated_data.pop('stop')
+        # start = validated_data.pop('start')
+        # stop = validated_data.pop('stop')
         call = Call.objects.create(**validated_data)
-        StartCallRecord.objects.create(call=call, **start)
-        StopCallRecord.objects.create(call=call, **stop)
+        # StartCallRecord.objects.create(call=call, **start)
+        # StopCallRecord.objects.create(call=call, **stop)
         return validated_data
 
 
