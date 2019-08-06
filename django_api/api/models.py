@@ -20,7 +20,7 @@ class CallBills(models.Model):
     price = models.IntegerField('PRICE', max_length=9)
     call_start_date = models.DateField('CALL_DATE')
     call_start_time = models.TimeField('CALL_TIME')
-    duration = models.TimeField('DURATION')
+    duration = models.CharField('DURATION', max_length=10)
     call = models.OneToOneField(Call, on_delete=models.CASCADE, blank=True)
 
     class Meta:
