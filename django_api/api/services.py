@@ -29,19 +29,26 @@ class ApiService:
         call.save()
 
         price, days_diff = self.calculate_bills(record_start, record_stop)
+        duration = self.calculate_duration(days_diff)
 
         bill = {
             'price': price,
             'call_start_date': start_record.date(),
             'call_start_time': start_record.time(),
-            'duration': days_diff,
+            'duration': duration,
             'call': call
 
         }
         bill = CallBills(**bill)
         bill.save()
 
-        print("a")
+        print("Salvo")
+
+    @staticmethod
+    def calculate_duration(days_diff):
+        hours, remainder = divmod(days_diff.total_seconds(), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return '{}:{}:{}'.format(int(hours), int(minutes), int(seconds))
 
     def calculate_bills(self, start_record, stop_record):
         standing_charge = 0.36
@@ -50,53 +57,48 @@ class ApiService:
 
         start_record = dateutil.parser.parse(start_record)
         stop_record = dateutil.parser.parse(stop_record)
-
-        # if same day simple verification
-        # else calculate days and hours
-        # subtracao para pegar a diferenca
         days_diff = stop_record - start_record
 
-        # se existir diferenca de dias start stop
         if days_diff.days != 0:
             start_record += timedelta(days=days_diff.days)
-            start_date, stop_date = self.calcule_hour(start_record, stop_record)
+            start_date, stop_date = self.set_time(start_record, stop_record)
 
             minutes_day = (days_diff.days * useful_day) * 60
             minutes_remaining = (stop_date - start_date).total_seconds() / 60
             minutes = minutes_day + minutes_remaining
             price = (minutes * call_charge) + standing_charge
-
-            hours, remainder = divmod(days_diff.total_seconds(), 3600)
-            minutes, seconds = divmod(remainder, 60)
-
-            # dt = datetime.strptime('40:00:15', "%H:%M:%S")
-            # td = timedelta(hours=hours, minutes=minutes, seconds=seconds).
-            # days_diff = str(int(hours) + ':' + int(minutes) + ':' + int(seconds))
-            # t = datetime.strptime("05:20:25", "%H:%M:%S").replace(hour=int(hours), minute=int(minutes), second=int(seconds))
-            print(0)
         else:
-            start_date, stop_date = self.calcule_hour(start_record, stop_record)
+            start_date, stop_date = self.set_time(start_record, stop_record)
             minutes = (stop_date - start_date).total_seconds() / 60
             price = (minutes * call_charge) + standing_charge
 
         return round(price, 2), days_diff
 
-    def calcule_hour(self, start_record, stop_record):
-        if start_record.hour < 6:
-            start_date = datetime.strptime(str(start_record), "%Y-%m-%d %H:%M:%S+00:00").replace(hour=6, minute=00,
-                                                                                                 second=00)
-        elif start_record.hour > 22:
-            start_date = datetime.strptime(str(start_record), "%Y-%m-%dT%H:%M:%SZ").replace(hour=22, minute=00, second=00)
-        else:
-            start_date = datetime.strptime(str(start_record), "%Y-%m-%dT%H:%M:%SZ")
-
-        if stop_record.hour < 6:
-            stop_date = datetime.strptime(self.stop['record_timestamp'], "%Y-%m-%dT%H:%M:%SZ").replace(hour=6, minute=00,
-                                                                                                       second=00)
-        elif stop_record.hour > 22:
-            stop_date = datetime.strptime(self.stop['record_timestamp'], "%Y-%m-%dT%H:%M:%SZ").replace(hour=22, minute=00,
-                                                                                                       second=00)
-        else:
-            stop_date = datetime.strptime(self.stop['record_timestamp'], "%Y-%m-%dT%H:%M:%SZ")
-
+    def set_time(self, start_record, stop_record):
+        start_date = self.set_start_time(start_record)
+        stop_date = self.set_stop_time(stop_record)
         return start_date, stop_date
+
+    @staticmethod
+    def set_start_time(start_record):
+        if start_record.hour < 6:
+            start_date = datetime.strptime(str(start_record), '%Y-%m-%d %H:%M:%S%z')\
+                .replace(hour=6, minute=00, second=00)
+        elif start_record.hour > 22:
+            start_date = datetime.strptime(str(start_record), '%Y-%m-%d %H:%M:%S%z')\
+                .replace(hour=22, minute=00, second=00)
+        else:
+            start_date = datetime.strptime(str(start_record), '%Y-%m-%d %H:%M:%S%z')
+        return start_date
+
+    @staticmethod
+    def set_stop_time(stop_record):
+        if stop_record.hour < 6:
+            stop_date = datetime.strptime(str(stop_record), '%Y-%m-%d %H:%M:%S%z')\
+                .replace(hour=6, minute=00, second=00)
+        elif stop_record.hour > 22:
+            stop_date = datetime.strptime(str(stop_record), '%Y-%m-%d %H:%M:%S%z')\
+                .replace(hour=22, minute=00, second=00)
+        else:
+            stop_date = datetime.strptime(str(stop_record), '%Y-%m-%d %H:%M:%S%z')
+        return stop_date
