@@ -1,1 +1,1 @@
-web: gunicorn django_api:manage.py
+web: python manage.py runserver
