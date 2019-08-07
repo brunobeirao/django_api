@@ -1,1 +1,1 @@
-web: gunicorn django_api:app
+web: gunicorn django_api:django_api
