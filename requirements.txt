@@ -11,3 +11,4 @@ pytest-sugar
 requests-mock
 gunicorn==19.9.0
 django-heroku
+whitenoise
