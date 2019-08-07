@@ -1,1 +1,1 @@
-web: gunicorn django_api.wsgi --log-file=-
+web: gunicorn django_api:application -b 0.0.0.0:5000
