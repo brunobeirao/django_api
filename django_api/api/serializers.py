@@ -8,7 +8,7 @@ class BillsSerializer(serializers.ModelSerializer):
         fields = ('id', 'price', 'duration')
 
 
-class CallsApiSerializer(serializers.ModelSerializer):
+class CallsSerializer(serializers.ModelSerializer):
     data = serializers.JSONField(required=False)
     class Meta:
         model = Call
@@ -20,7 +20,7 @@ class CallsApiSerializer(serializers.ModelSerializer):
         return validated_data
 
 
-class CallUploadSerializer(serializers.Serializer):
+class CallsApiSerializer(serializers.Serializer):
     data = serializers.JSONField(required=False)
 
     def create(self, validated_data):
