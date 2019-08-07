@@ -9,3 +9,4 @@ pytest-factoryboy
 pytest-mock
 pytest-sugar
 requests-mock
+gunicorn==19.9.0
