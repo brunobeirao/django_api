@@ -1,1 +1,1 @@
-web: gunicorn django_api:application -b 0.0.0.0:5000
+web: gunicorn django_api.wsgi:application --preload -b 0.0.0.0:5000
