@@ -135,18 +135,18 @@ USE_TZ = True
 
 
 
-# STATIC FILE CONFIGURATION
-# ------------------------------------------------------------------------------
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#static-root
-STATIC_ROOT = str(ROOT_DIR('staticfiles'))
-
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
-STATIC_URL = '/static/'
-
-# Simplified static file serving.
-# https://warehouse.python.org/project/whitenoise/
-
-STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+# # STATIC FILE CONFIGURATION
+# # ------------------------------------------------------------------------------
+# # See: https://docs.djangoproject.com/en/dev/ref/settings/#static-root
+# STATIC_ROOT = str(ROOT_DIR('staticfiles'))
+#
+# # See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
+# STATIC_URL = '/static/'
+#
+# # Simplified static file serving.
+# # https://warehouse.python.org/project/whitenoise/
+#
+# STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 SWAGGER_SETTINGS = {
     'JSON_EDITOR': True,
