@@ -10,7 +10,8 @@ import json
 
 
 class CallProcess(generics.ListCreateAPIView):
-
+    serializer_class = CallsSerializer
+    
     def post(self, request):
         CallsApiSerializer(data=request.data)
         data = json.loads(request.data['data'])
