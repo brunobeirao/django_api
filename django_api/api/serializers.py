@@ -9,7 +9,6 @@ class BillsSerializer(serializers.ModelSerializer):
 
 
 class CallsSerializer(serializers.ModelSerializer):
-    data = serializers.JSONField(required=False)
     class Meta:
         model = Call
         fields = 'id', 'record_start', 'record_stop', 'source', 'destination'
