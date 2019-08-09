@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics
@@ -26,10 +27,14 @@ class CallProcess(generics.ListCreateAPIView):
     #     serializer = CallsApiSerializer(api)
     #     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    # def get(self, request):
-    #     api = ApiService(request.data)
-    #     serializer = CallsApiSerializer(api)
-    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+class Call(APIView):
+    serializer_class = CallsSerializer
+
+    def get(self, request, call_id):
+        api = ApiService(request.data)
+        call = api.get_call(call_id)
+        serializer = self.serializer_class(call, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class Charge(generics.ListCreateAPIView):

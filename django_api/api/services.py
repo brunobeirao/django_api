@@ -101,6 +101,11 @@ class ApiService:
             stop_date = datetime.strptime(str(stop_record), '%Y-%m-%d %H:%M:%S')
         return stop_date
 
+    def get_call(self, id):
+        call = Call.objects.filter(id=id).select_related('callbills')
+        return call
+
+
 
 class ChargeService:
     def __init__(self, params):

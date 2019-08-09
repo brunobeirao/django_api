@@ -9,14 +9,18 @@ class BillsSerializer(serializers.ModelSerializer):
 
 
 class CallsSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+    callbills = BillsSerializer(many=False, read_only=True)
+
     class Meta:
         model = Call
-        fields = 'id', 'record_start', 'record_stop', 'source', 'destination'
+        # fields = 'id'
+        fields = ('id', 'record_start', 'record_stop', 'source', 'destination', 'callbills')
 
-    def create(self, validated_data):
-        call = Call.objects.create(**validated_data)
-
-        return validated_data
+    # def create(self, validated_data):
+    #     call = Call.objects.create(**validated_data)
+    #
+    #     return validated_data
 
 
 class CallsApiSerializer(serializers.Serializer):
