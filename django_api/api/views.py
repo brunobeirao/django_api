@@ -14,7 +14,7 @@ class CallProcess(generics.ListCreateAPIView):
     http_method_names = ['post']
 
     def post(self, request):
-        CallsApiSerializer(data=request.data)
+        CallsApiSerializer(data=request.data['data'])
         data = json.loads(request.data['data'])
         api = ApiService(data)
         api.process_calls()
