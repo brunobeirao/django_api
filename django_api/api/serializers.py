@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Call, CallBills
+from .models import Call, CallBills, Charges
 
 
 class BillsSerializer(serializers.ModelSerializer):
@@ -25,3 +25,9 @@ class CallsApiSerializer(serializers.Serializer):
     def create(self, validated_data):
         call = Call.objects.create(**validated_data)
         return validated_data
+
+
+class ChargesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Charges
+        fields = 'id', 'standing_charge', 'call_charge', 'useful_day'

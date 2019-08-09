@@ -14,7 +14,7 @@ settings.configure()
 class TestRequests(TestCase):
 
     def test_post(self):
-        self.url = '/api/v1/calls/details'
+        self.url = '/api/v1/calls/process'
         json_to_open = 'test.json'
         with open(os.path.join(RESOURCE_DIR, json_to_open)) as json_file:
             dict_data = json.load(json_file)

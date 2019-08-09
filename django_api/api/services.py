@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import dateutil.parser
-from .models import Call, CallBills
+from .models import Call, CallBills, Charges
 
 
 class ApiService:
@@ -9,41 +9,39 @@ class ApiService:
         self.start = params.get('start')
         self.stop = params.get('stop')
 
-    def save_start_call(self):
-        start_record = dateutil.parser.parse(self.start['record_timestamp'])
-        call_id = self.call_id
-        source = self.start['source']
-        destination = self.start['destination']
-        record_start = self.start['record_timestamp']
-        record_stop = self.stop['record_timestamp']
+    def process_calls(self):
+        # try:
+            start_record = dateutil.parser.parse(self.start['record_timestamp'])
+            record_start = self.start['record_timestamp']
+            record_stop = self.stop['record_timestamp']
 
-        call = {
-            'id': call_id,
-            'source': source,
-            'destination': destination,
-            'record_start': record_start,
-            'record_stop': record_stop
+            call = {
+                'id': self.call_id,
+                'source': self.start['source'],
+                'destination': self.start['destination'],
+                'record_start': record_start,
+                'record_stop': record_stop
 
-        }
-        call = Call(**call)
-        call.save()
+            }
+            call = Call(**call)
+            call.save()
 
-        price, days_diff = self.calculate_bills(record_start, record_stop)
-        duration = self.calculate_duration(days_diff)
+            price, days_diff = self.calculate_bills(record_start, record_stop)
+            duration = self.calculate_duration(days_diff)
 
-        bill = {
-            'price': price,
-            'call_start_date': start_record.date(),
-            'call_start_time': start_record.time(),
-            'duration': duration,
-            'call': call
+            bill = {
+                'price': price,
+                'call_start_date': start_record.date(),
+                'call_start_time': start_record.time(),
+                'duration': duration,
+                'call': call
 
-        }
-        bill = CallBills(**bill)
-        bill.save()
+            }
+            bill = CallBills(**bill)
+            bill.save()
 
-        print("Salvo")
-
+            print("Salvo")
+        # Catch
     @staticmethod
     def calculate_duration(days_diff):
         hours, remainder = divmod(days_diff.total_seconds(), 3600)
@@ -51,6 +49,7 @@ class ApiService:
         return '{}:{}:{}'.format(int(hours), int(minutes), int(seconds))
 
     def calculate_bills(self, start_record, stop_record):
+        charges = self._get_charges()
         standing_charge = 0.36
         call_charge = 0.09
         useful_day = 16
@@ -102,3 +101,31 @@ class ApiService:
         else:
             stop_date = datetime.strptime(str(stop_record), '%Y-%m-%d %H:%M:%S%z')
         return stop_date
+
+
+class ChargeService:
+    def __init__(self, params):
+        self.standing_charge = params.get('standing_charge')
+        self.call_charge = params.get('call_charge')
+        self.useful_day = params.get('useful_day')
+
+    def save_charges(self):
+        #update where status =1
+        # save new register
+        self.save()
+
+    def save(self):
+        charges = {
+            'standing_charge': self.standing_charge,
+            'call_charge': self.call_charge,
+            'useful_day': self.useful_day,
+            'status': 1,
+            'create_date': datetime.now()
+
+        }
+        charges = Charges(**charges)
+        charges.save()
+
+    @staticmethod
+    def _get_charges():
+        return Charges.object.filter(status=1)
