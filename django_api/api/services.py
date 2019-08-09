@@ -49,7 +49,6 @@ class ApiService:
         return '{}:{}:{}'.format(int(hours), int(minutes), int(seconds))
 
     def calculate_bills(self, start_record, stop_record):
-        charges = self._get_charges()
         standing_charge = 0.36
         call_charge = 0.09
         useful_day = 16
