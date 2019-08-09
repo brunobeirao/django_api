@@ -12,17 +12,10 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 import django_heroku
-import environ
 
 
-
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-#BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-ROOT_DIR = environ.Path(__file__) - 1  # (template/config/settings/base.py - 3 = template/)
-
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -131,20 +124,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
-
-# # STATIC FILE CONFIGURATION
-# # ------------------------------------------------------------------------------
-# # See: https://docs.djangoproject.com/en/dev/ref/settings/#static-root
-# STATIC_ROOT = str(ROOT_DIR('staticfiles'))
-#
-# # See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
-# STATIC_URL = '/static/'
-#
-# # Simplified static file serving.
-# # https://warehouse.python.org/project/whitenoise/
-#
-# STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 SWAGGER_SETTINGS = {
     'JSON_EDITOR': True,

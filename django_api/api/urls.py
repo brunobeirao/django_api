@@ -14,11 +14,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url
-from django_api.api.views import CallProcess, CallStop, DataUploadView
+from django_api.api.views import CallProcess, Charge, DataUploadView
 
 urlpatterns = [
-    # url(r'^details', Call.as_view(), name='post-start'),
     url(r'^data_upload', DataUploadView.as_view()),
     url(r'^process', CallProcess.as_view(), name='post-process'),
-    url(r'^stop', CallStop.as_view(), name='post-stop'),
+    url(r'^charge', Charge.as_view(), name='post-stop'),
 ]
