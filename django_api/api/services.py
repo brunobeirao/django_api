@@ -1,5 +1,8 @@
-from datetime import datetime, timedelta
 import dateutil.parser
+from datetime import datetime, timedelta
+
+from django.db import IntegrityError
+
 from .models import Call, CallBills, Charges
 
 
@@ -10,7 +13,7 @@ class ApiService:
         self.stop = params.get('stop')
 
     def process_calls(self):
-        # try:
+        try:
             start_record = dateutil.parser.parse(self.start['record_timestamp'])
             record_start = self.start['record_timestamp']
             record_stop = self.stop['record_timestamp']
@@ -39,9 +42,13 @@ class ApiService:
             }
             bill = CallBills(**bill)
             bill.save()
+        except IntegrityError as e:
+            raise IntegrityError(e.args[0])
+        except KeyError as key:
+            raise KeyError(key.args[0])
+        except Exception as ex:
+            raise Exception(ex.args[0])
 
-            print("Salvo")
-        # Catch
     @staticmethod
     def calculate_duration(days_diff):
         hours, remainder = divmod(days_diff.total_seconds(), 3600)
@@ -49,28 +56,29 @@ class ApiService:
         return '{}:{}:{}'.format(int(hours), int(minutes), int(seconds))
 
     def calculate_bills(self, start_record, stop_record):
-        standing_charge = 0.36
-        call_charge = 0.09
-        useful_day = 16
+        try:
+            charge = ChargeService.get_charge().first()
+            start_record = dateutil.parser.parse(start_record)
+            stop_record = dateutil.parser.parse(stop_record)
+            days_diff = stop_record - start_record
 
-        start_record = dateutil.parser.parse(start_record)
-        stop_record = dateutil.parser.parse(stop_record)
-        days_diff = stop_record - start_record
+            if days_diff.days != 0:
+                start_record += timedelta(days=days_diff.days)
+                start_date, stop_date = self.set_time(start_record, stop_record)
 
-        if days_diff.days != 0:
-            start_record += timedelta(days=days_diff.days)
-            start_date, stop_date = self.set_time(start_record, stop_record)
+                minutes_day = (days_diff.days * charge.useful_day) * 60
+                minutes_remaining = (stop_date - start_date).total_seconds() / 60
+                minutes = minutes_day + minutes_remaining
+                price = (minutes * charge.call_charge) + charge.standing_charge
+            else:
+                start_date, stop_date = self.set_time(start_record, stop_record)
+                minutes = (stop_date - start_date).total_seconds() / 60
+                price = (minutes * charge.call_charge) + charge.standing_charge
 
-            minutes_day = (days_diff.days * useful_day) * 60
-            minutes_remaining = (stop_date - start_date).total_seconds() / 60
-            minutes = minutes_day + minutes_remaining
-            price = (minutes * call_charge) + standing_charge
-        else:
-            start_date, stop_date = self.set_time(start_record, stop_record)
-            minutes = (stop_date - start_date).total_seconds() / 60
-            price = (minutes * call_charge) + standing_charge
+            return round(price, 2), days_diff
 
-        return round(price, 2), days_diff
+        except Exception as e:
+            raise Exception('Calculate bills erro - ' + e.args[0])
 
     def set_time(self, start_record, stop_record):
         start_date = self.set_start_time(start_record)
@@ -101,10 +109,10 @@ class ApiService:
             stop_date = datetime.strptime(str(stop_record), '%Y-%m-%d %H:%M:%S')
         return stop_date
 
-    def get_call(self, id):
+    @staticmethod
+    def get_call(id):
         call = Call.objects.filter(id=id).select_related('callbills')
         return call
-
 
 
 class ChargeService:
@@ -113,23 +121,31 @@ class ChargeService:
         self.call_charge = params.get('call_charge')
         self.useful_day = params.get('useful_day')
 
-    def save_charges(self):
-        #update where status =1
-        # save new register
-        self.save()
+    def save_charge(self):
+        if self.get_charge():
+            self._update_charge()
+        self._save()
 
-    def save(self):
-        charges = {
-            'standing_charge': self.standing_charge,
-            'call_charge': self.call_charge,
-            'useful_day': self.useful_day,
-            'status': 1,
-            'create_date': datetime.now()
-
-        }
-        charges = Charges(**charges)
-        charges.save()
+    def _save(self):
+        try:
+            charges = {
+                'standing_charge': float(self.standing_charge),
+                'call_charge': float(self.call_charge),
+                'useful_day': int(self.useful_day),
+                'status': 1,
+                'create_date': datetime.now()
+            }
+            charges = Charges(**charges)
+            charges.save()
+        except IntegrityError as e:
+            raise IntegrityError(e.args[0])
+        except Exception as ex:
+            raise Exception(ex.args[0])
 
     @staticmethod
-    def _get_charges():
-        return Charges.object.filter(status=1)
+    def get_charge():
+        return Charges.objects.filter(status=1)
+
+    @staticmethod
+    def _update_charge():
+        return Charges.objects.filter(status=1).update(status=0)

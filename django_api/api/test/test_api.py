@@ -11,6 +11,7 @@ BASEDIR = Path(__file__).parents[2]
 RESOURCE_DIR = os.path.join(BASEDIR, 'resources')
 settings.configure()
 
+
 class TestRequests(TestCase):
 
     def test_post(self):
