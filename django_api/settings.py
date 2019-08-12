@@ -42,6 +42,7 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     'rest_framework_swagger',
+    'django_nose',
 ]
 
 LOCAL_APPS = [
@@ -137,6 +138,13 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.JSONParser',
     ],
 }
+
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+NOSE_ARGS = [
+    '--with-coverage',
+    '--cover-package=django_api',
+]
 
 # Activate Django-Heroku.
 django_heroku.settings(locals())

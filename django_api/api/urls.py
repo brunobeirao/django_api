@@ -18,6 +18,6 @@ from django_api.api.views import CallProcess, Charge, Call
 
 urlpatterns = [
     url(r'^process', CallProcess.as_view(), name='post-process'),
-    url(r'^call/(?P<call_id>\d+)/$', Call.as_view(), name='get-call'),
+    url(r'^call/(?P<call_id>\d+)$', Call.as_view(), name='get-call'),
     url(r'^charge', Charge.as_view(), name='charge'),
 ]
