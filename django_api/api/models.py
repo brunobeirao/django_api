@@ -8,8 +8,8 @@ class Call(models.Model):
     id = models.IntegerField('ID', primary_key=True)
     record_start = models.DateTimeField('RECORD_START')
     record_stop = models.DateTimeField('RECORD_STOP')
-    source = models.IntegerField('SOURCE')
-    destination = models.IntegerField('DESTINATION')
+    source = models.BigIntegerField('SOURCE')
+    destination = models.BigIntegerField('DESTINATION')
 
     class Meta:
         db_table = 'Calls'
