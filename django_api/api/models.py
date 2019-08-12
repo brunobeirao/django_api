@@ -33,7 +33,7 @@ class Charges(models.Model):
     call_charge = models.FloatField('CALL_CHARGE')
     useful_day = models.IntegerField('USEFUL_DAY')
     status = models.IntegerField('STATUS')
-    create_date = models.DateField('CREATE_DATE')
+    create_date = models.DateField('CREATE_DATE', auto_now_add=True)
 
     class Meta:
         db_table = 'Charges'
