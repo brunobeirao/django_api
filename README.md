@@ -96,3 +96,9 @@ Swagger docs shows the url and is possible to get and post values.
         }
       }
     ]
+    
+### Improvements:
+    
+- Fix bug to post data process on swagger.
+- Tests cases.
+
