@@ -101,4 +101,5 @@ Swagger docs shows the url and is possible to get and post values.
     
 - Fix bug to post data process on swagger.
 - Tests cases.
+- Errors handling
 
