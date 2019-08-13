@@ -29,9 +29,48 @@ Data load and process run in project root diretory:
 
     curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' 'https://django-api-call.herokuapp.com/api/v1/calls/charge' --data @charges.json
 
+If you have a saved charge, the actived charge have a status = 1. When you post a new charge, the last posted is status = 0 and the new is status = 1.
+
+You can get:
+
+    https://django-api-call.herokuapp.com/api/v1/calls/charge
+    
+Returns:
+
+    [
+      {
+        "id": 1,
+        "standing_charge": 0.36,
+        "call_charge": 0.09,
+        "useful_day": 16,
+        "status": 1
+      }
+    ]
+        
+
 #### Process Calls
 
+Post a new json data with call information:
+
     curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' 'https://django-api-call.herokuapp.com/api/v1/calls/process' --data @data.json
+    
+data.json example:
+
+    [
+      {
+        "call_id": 70,
+        "start": {
+          "type": "start",
+          "record_timestamp": "2016-02-29T12:00:00Z",
+          "source": 99988526423,
+          "destination": 9933468278
+        },
+        "stop": {
+          "type": "stop",
+          "record_timestamp": "2016-02-29T14:00:00Z"
+        }
+      }
+    ]
 
 Swagger docs shows the url and is possible to get and post values.
 
