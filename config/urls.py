@@ -15,7 +15,6 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
-from django_api import urls
 
 from rest_framework_swagger.views import get_swagger_view
 
@@ -24,5 +23,5 @@ schema_view = get_swagger_view(title='Call API')
 urlpatterns = [
     url(r'^docs/', schema_view),
     url(r'^admin/', admin.site.urls),
-    url(r'^api/v1/?', include(urls, urls.app_name))
+    url(r'^calls/', include('django_api.api.urls'))
 ]
