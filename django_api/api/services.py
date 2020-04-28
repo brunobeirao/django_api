@@ -1,12 +1,15 @@
 import dateutil.parser
+
 from datetime import datetime, timedelta
 
 from django.db import IntegrityError
+from django.shortcuts import get_object_or_404
 
 from .models import Call, CallBills, Charges
 
 
 class ApiService:
+
     def __init__(self, params):
         self.call_id = params.get('call_id')
         self.start = params.get('start')
@@ -24,7 +27,6 @@ class ApiService:
                 'destination': self.start['destination'],
                 'record_start': record_start,
                 'record_stop': record_stop
-
             }
             call = Call(**call)
             call.save()
@@ -38,7 +40,6 @@ class ApiService:
                 'call_start_time': start_record.time(),
                 'duration': duration,
                 'call': call
-
             }
             bill = CallBills(**bill)
             bill.save()
@@ -57,7 +58,7 @@ class ApiService:
 
     def calculate_bills(self, start_record, stop_record):
         try:
-            charge = ChargeService.get_charge().first()
+            charge = ChargeService.get_charge_activated()
             start_record = dateutil.parser.parse(start_record)
             stop_record = dateutil.parser.parse(stop_record)
             days_diff = stop_record - start_record
@@ -116,36 +117,70 @@ class ApiService:
 
 
 class ChargeService:
+
     def __init__(self, params):
         self.standing_charge = params.get('standing_charge')
         self.call_charge = params.get('call_charge')
         self.useful_day = params.get('useful_day')
+        self.status = params.get('status')
 
     def save_charge(self):
-        if self.get_charge():
-            self._update_charge()
-        self._save()
+        charge_activated = Charges.objects.filter(status=True).first()
+        try:
+            if charge_activated:
+                self._update_status(charge_activated.id, False)
+            self._save()
+        except IntegrityError as e:
+            self._update_status(charge_activated.id, True)
+            raise IntegrityError(e.args[0])
+        except ValueError:
+            self._update_status(charge_activated.id, True)
+            raise ValueError('Value must be with dot and not comma - Like: 0.55')
+
+    def update_charge(self):
+        charge = self.get_charge(self.standing_charge, self.call_charge)
+        try:
+            if self.status:
+                self._update_status(charge.id, False)
+            if charge:
+                self._update(charge)
+        except IntegrityError as e:
+            self._update_status(charge.id, True)
+            raise IntegrityError(e.args[0])
+        except ValueError:
+            self._update_status(charge.id, True)
+            raise ValueError('Value must be with dot and not comma - Like: 0.55')
 
     def _save(self):
-        try:
-            charges = {
-                'standing_charge': float(self.standing_charge),
-                'call_charge': float(self.call_charge),
-                'useful_day': int(self.useful_day),
-                'status': 1,
-                'create_date': datetime.now()
-            }
-            charges = Charges(**charges)
-            charges.save()
-        except IntegrityError as e:
-            raise IntegrityError(e.args[0])
-        except Exception as ex:
-            raise Exception(ex.args[0])
+        charges = {
+            'standing_charge': float(self.standing_charge),
+            'call_charge': float(self.call_charge),
+            'useful_day': int(self.useful_day),
+            'status': True,
+            'create_date': datetime.now()
+        }
+        charges = Charges(**charges)
+        charges.save()
+
+    def _update(self, charge_exists):
+        Charges.objects.filter(id=charge_exists.id).update(
+            standing_charge=self.standing_charge,
+            call_charge=self.call_charge,
+            useful_day=self.useful_day,
+            status=bool(self.status))
 
     @staticmethod
-    def get_charge():
-        return Charges.objects.filter(status=1)
+    def get_charge(standing_charge, call_charge):
+        return get_object_or_404(Charges, standing_charge=standing_charge, call_charge=call_charge)
 
     @staticmethod
-    def _update_charge():
-        return Charges.objects.filter(status=1).update(status=0)
+    def get_charge_activated():
+        return Charges.objects.get(status=True)
+
+    @staticmethod
+    def get_charge(standing_charge, call_charge):
+        return get_object_or_404(Charges, standing_charge=standing_charge, call_charge=call_charge)
+
+    @staticmethod
+    def _update_status(id_charge, is_active):
+        return Charges.objects.filter(id=id_charge).update(status=is_active)

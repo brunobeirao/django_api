@@ -32,8 +32,9 @@ class Charges(models.Model):
     standing_charge = models.FloatField('STANDING_CHARGE', max_length=9)
     call_charge = models.FloatField('CALL_CHARGE')
     useful_day = models.IntegerField('USEFUL_DAY')
-    status = models.IntegerField('STATUS')
+    status = models.BooleanField('STATUS')
     create_date = models.DateField('CREATE_DATE', auto_now_add=True)
 
     class Meta:
         db_table = 'Charges'
+        unique_together = ('standing_charge', 'call_charge')

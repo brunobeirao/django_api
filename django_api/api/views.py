@@ -39,7 +39,7 @@ class Call(APIView):
 
 class Charge(generics.ListCreateAPIView):
     serializer_class = ChargeSerializer
-    http_method_names = ['post', 'get']
+    http_method_names = ['post', 'get', 'put']
 
     def post(self, request):
         """
@@ -58,3 +58,12 @@ class Charge(generics.ListCreateAPIView):
         charge = service.get_charge()
         serializer = self.serializer_class(charge, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request):
+        """
+        Update Charge value
+        """
+        ChargeSerializer(data=request.data)
+        service = ChargeService(request.data)
+        service.update_charge()
+        return Response(request.data, status=status.HTTP_200_OK)

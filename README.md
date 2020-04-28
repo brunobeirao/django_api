@@ -8,13 +8,13 @@ Deployed on Heroku.
 
 #### API
 
-    get /api/v1/calls/call/{call_id} 
+    get /calls/call/{call_id} 
 
-    get /api/v1/calls/charge 
+    get /calls/charge 
 
-    post /api/v1/calls/charge 
+    post /calls/charge 
 
-    post /api/v1/calls/process 
+    post /calls/process 
 
 #### Api on Heroku 
 https://django-api-call.herokuapp.com/api/v1/calls
@@ -27,13 +27,13 @@ Data load and process run in project root diretory:
 
 #### Set Charges
 
-    curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' 'https://django-api-call.herokuapp.com/api/v1/calls/charge' --data @charges.json
+    curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' 'https://django-api-call.herokuapp.com/calls/charge' --data @charges.json
 
 If you have a saved charge, the actived charge have a status = 1. When you post a new charge, the last posted is status = 0 and the new is status = 1.
 
 You can get:
 
-    https://django-api-call.herokuapp.com/api/v1/calls/charge
+    https://django-api-call.herokuapp.com/calls/charge
     
 Returns:
 
@@ -52,7 +52,7 @@ Returns:
 
 Post a new json data with call information:
 
-    curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' 'https://django-api-call.herokuapp.com/api/v1/calls/process' --data @data.json
+    curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' 'https://django-api-call.herokuapp.com/calls/process' --data @data.json
     
 data.json example:
 
@@ -78,7 +78,7 @@ Swagger docs shows the url and is possible to get and post values.
 
   Get:
     
-    https://django-api-call.herokuapp.com/api/v1/calls/77
+    https://django-api-call.herokuapp.com/calls/77
 
   Returns:
 
