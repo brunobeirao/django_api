@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 
-from .models import Call, CallBills, Charges
+from .models import Call, Bill, Charge
 
 
 class ApiService:
@@ -14,34 +14,32 @@ class ApiService:
         self.call_id = params.get('call_id')
         self.start = params.get('start')
         self.stop = params.get('stop')
+        self.charge = ChargeService.get_charge_activated()
 
     def process_calls(self):
         try:
-            start_record = dateutil.parser.parse(self.start['record_timestamp'])
             record_start = self.start['record_timestamp']
             record_stop = self.stop['record_timestamp']
+
+            price, days_diff = self.calculate_bills(record_start, record_stop)
+            duration = self.calculate_duration(days_diff)
 
             call = {
                 'id': self.call_id,
                 'source': self.start['source'],
                 'destination': self.start['destination'],
                 'record_start': record_start,
-                'record_stop': record_stop
+                'record_stop': record_stop,
+                'duration': duration
             }
             call = Call(**call)
             call.save()
 
-            price, days_diff = self.calculate_bills(record_start, record_stop)
-            duration = self.calculate_duration(days_diff)
-
             bill = {
                 'price': price,
-                'call_start_date': start_record.date(),
-                'call_start_time': start_record.time(),
-                'duration': duration,
                 'call': call
             }
-            bill = CallBills(**bill)
+            bill = Bill(**bill)
             bill.save()
         except IntegrityError as e:
             raise IntegrityError(e.args[0])
@@ -58,62 +56,47 @@ class ApiService:
 
     def calculate_bills(self, start_record, stop_record):
         try:
-            charge = ChargeService.get_charge_activated()
+            useful_day = self.charge.hour_stop - self.charge.hour_start;
             start_record = dateutil.parser.parse(start_record)
             stop_record = dateutil.parser.parse(stop_record)
             days_diff = stop_record - start_record
 
             if days_diff.days != 0:
                 start_record += timedelta(days=days_diff.days)
-                start_date, stop_date = self.set_time(start_record, stop_record)
+                start_date, stop_date = self.set_time_record(start_record, stop_record)
 
-                minutes_day = (days_diff.days * charge.useful_day) * 60
+                minutes_day = (days_diff.days * useful_day) * 60
                 minutes_remaining = (stop_date - start_date).total_seconds() / 60
                 minutes = minutes_day + minutes_remaining
-                price = (minutes * charge.call_charge) + charge.standing_charge
+                price = (int(minutes) * self.charge.call_charge) + self.charge.standing_charge
             else:
-                start_date, stop_date = self.set_time(start_record, stop_record)
+                start_date, stop_date = self.set_time_record(start_record, stop_record)
                 minutes = (stop_date - start_date).total_seconds() / 60
-                price = (minutes * charge.call_charge) + charge.standing_charge
+                price = (int(minutes) * self.charge.call_charge) + self.charge.standing_charge
 
             return round(price, 2), days_diff
-
         except Exception as e:
-            raise Exception('Calculate bills erro - ' + e.args[0])
+            raise Exception('Calculate Bill error - ' + e.args[0])
 
-    def set_time(self, start_record, stop_record):
-        start_date = self.set_start_time(start_record)
-        stop_date = self.set_stop_time(stop_record)
+    def set_time_record(self, start_record, stop_record):
+        start_date = self.set_time(start_record)
+        stop_date = self.set_time(stop_record)
         return start_date, stop_date
 
-    @staticmethod
-    def set_start_time(start_record):
-        if start_record.hour < 6:
-            start_date = datetime.strptime(str(start_record), '%Y-%m-%d %H:%M:%S+00:00')\
-                .replace(hour=6, minute=00, second=00)
-        elif start_record.hour > 22:
-            start_date = datetime.strptime(str(start_record), '%Y-%m-%d %H:%M:%S+00:00')\
-                .replace(hour=22, minute=00, second=00)
+    def set_time(self, record):
+        if record.hour < self.charge.hour_start:
+            time = datetime.strptime(str(record), '%Y-%m-%d %H:%M:%S+00:00')\
+                .replace(hour=self.charge.hour_start, minute=00, second=00)
+        elif record.hour > self.charge.hour_stop:
+            time = datetime.strptime(str(record), '%Y-%m-%d %H:%M:%S+00:00')\
+                .replace(hour=self.charge.hour_stop, minute=00, second=00)
         else:
-            start_date = datetime.strptime(str(start_record), '%Y-%m-%d %H:%M:%S+00:00')
-        return start_date
+            time = datetime.strptime(str(record), '%Y-%m-%d %H:%M:%S+00:00')
+        return time
 
     @staticmethod
-    def set_stop_time(stop_record):
-        if stop_record.hour < 6:
-            stop_date = datetime.strptime(str(stop_record), '%Y-%m-%d %H:%M:%S+00:00')\
-                .replace(hour=6, minute=00, second=00)
-        elif stop_record.hour > 22:
-            stop_date = datetime.strptime(str(stop_record), '%Y-%m-%d %H:%M:%S+00:00')\
-                .replace(hour=22, minute=00, second=00)
-        else:
-            stop_date = datetime.strptime(str(stop_record), '%Y-%m-%d %H:%M:%S+00:00')
-        return stop_date
-
-    @staticmethod
-    def get_call(id):
-        call = Call.objects.filter(id=id).select_related('callbills')
-        return call
+    def get_call(call_id):
+        return Call.objects.filter(id=call_id).select_related('callbill')
 
 
 class ChargeService:
@@ -121,11 +104,12 @@ class ChargeService:
     def __init__(self, params):
         self.standing_charge = params.get('standing_charge')
         self.call_charge = params.get('call_charge')
-        self.useful_day = params.get('useful_day')
-        self.status = params.get('status')
+        self.hour_start = params.get('hour_start')
+        self.hour_stop = params.get('hour_stop')
+        self.active = params.get('active')
 
     def save_charge(self):
-        charge_activated = Charges.objects.filter(status=True).first()
+        charge_activated = Charge.objects.filter(active=True).first()
         try:
             if charge_activated:
                 self._update_status(charge_activated.id, False)
@@ -140,7 +124,7 @@ class ChargeService:
     def update_charge(self):
         charge = self.get_charge(self.standing_charge, self.call_charge)
         try:
-            if self.status:
+            if self.active:
                 self._update_status(charge.id, False)
             if charge:
                 self._update(charge)
@@ -152,35 +136,37 @@ class ChargeService:
             raise ValueError('Value must be with dot and not comma - Like: 0.55')
 
     def _save(self):
-        charges = {
+        charge = {
             'standing_charge': float(self.standing_charge),
             'call_charge': float(self.call_charge),
-            'useful_day': int(self.useful_day),
-            'status': True,
+            'hour_start': int(self.hour_start),
+            'hour_stop': int(self.hour_stop),
+            'active': True,
             'create_date': datetime.now()
         }
-        charges = Charges(**charges)
-        charges.save()
+        charge = Charge(**charge)
+        charge.save()
 
     def _update(self, charge_exists):
-        Charges.objects.filter(id=charge_exists.id).update(
+        Charge.objects.filter(id=charge_exists.id).update(
             standing_charge=self.standing_charge,
             call_charge=self.call_charge,
-            useful_day=self.useful_day,
-            status=bool(self.status))
+            hour_start=self.hour_start,
+            hour_stop=self.hour_stop,
+            active=bool(self.active))
 
     @staticmethod
     def get_charge(standing_charge, call_charge):
-        return get_object_or_404(Charges, standing_charge=standing_charge, call_charge=call_charge)
+        return get_object_or_404(Charge, standing_charge=standing_charge, call_charge=call_charge)
 
     @staticmethod
     def get_charge_activated():
-        return Charges.objects.get(status=True)
+        return Charge.objects.get(active=True)
 
     @staticmethod
     def get_charge(standing_charge, call_charge):
-        return get_object_or_404(Charges, standing_charge=standing_charge, call_charge=call_charge)
+        return get_object_or_404(Charge, standing_charge=standing_charge, call_charge=call_charge)
 
     @staticmethod
     def _update_status(id_charge, is_active):
-        return Charges.objects.filter(id=id_charge).update(status=is_active)
+        return Charge.objects.filter(id=id_charge).update(active=is_active)

@@ -6,19 +6,19 @@ from rest_framework.response import Response
 from rest_framework import status, generics
 
 from .services import ApiService, ChargeService
-from .serializers import CallsApiSerializer, CallsSerializer, ChargeSerializer
+from .serializers import CallApiSerializer, CallSerializer, ChargeSerializer
 
 
 class CallProcess(generics.ListCreateAPIView):
     """
     Process a new call and calculate bills
     """
-    serializer_class = CallsApiSerializer
+    serializer_class = CallApiSerializer
     http_method_names = ['post']
 
     def post(self, request):
         for request in request.data:
-            CallsApiSerializer(data=request)
+            CallApiSerializer(data=request)
             api = ApiService(request)
             api.process_calls()
         return Response(request, status=status.HTTP_201_CREATED)
@@ -28,7 +28,7 @@ class Call(APIView):
     """
     Return Call by ID
     """
-    serializer_class = CallsSerializer
+    serializer_class = CallSerializer
 
     def get(self, request, call_id):
         api = ApiService(request.data)
@@ -43,7 +43,7 @@ class Charge(generics.ListCreateAPIView):
 
     def post(self, request):
         """
-        Create a new Charge or update
+        Create a new Charge
         """
         ChargeSerializer(data=request.data)
         service = ChargeService(request.data)
@@ -55,8 +55,8 @@ class Charge(generics.ListCreateAPIView):
         Get active Charge
         """
         service = ChargeService(request.data)
-        charge = service.get_charge()
-        serializer = self.serializer_class(charge, many=True)
+        charge = service.get_charge_activated()
+        serializer = self.serializer_class(charge, many=False)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request):

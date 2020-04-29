@@ -1,24 +1,24 @@
 from rest_framework import serializers
 
-from .models import Call, CallBills, Charges
+from .models import Call, Bill, Charge
 
 
-class BillsSerializer(serializers.ModelSerializer):
+class BillSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CallBills
-        fields = ('id', 'price', 'duration')
+        model = Bill
+        fields = 'id', 'price', 'duration'
 
 
-class CallsSerializer(serializers.ModelSerializer):
+class CallSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
-    callbills = BillsSerializer(many=False, read_only=True)
+    callbill = BillSerializer(many=False, read_only=True)
 
     class Meta:
         model = Call
-        fields = ('id', 'record_start', 'record_stop', 'source', 'destination', 'callbills')
+        fields = 'id', 'record_start', 'record_stop', 'source', 'destination', 'callbill'
 
 
-class CallsApiSerializer(serializers.Serializer):
+class CallApiSerializer(serializers.Serializer):
     json_data = serializers.JSONField(required=True)
 
     def create(self, validated_data):
@@ -31,5 +31,5 @@ class CallsApiSerializer(serializers.Serializer):
 
 class ChargeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Charges
-        fields = 'id', 'standing_charge', 'call_charge', 'useful_day', 'status'
+        model = Charge
+        fields = 'id', 'standing_charge', 'call_charge', 'hour_start', 'hour_stop', 'active'
