@@ -3,19 +3,17 @@ from rest_framework import serializers
 from .models import Call, Bill, Charge
 
 
-class BillSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Bill
-        fields = 'id', 'price', 'duration'
-
-
 class CallSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(required=False)
-    callbill = BillSerializer(many=False, read_only=True)
+    # id = serializers.IntegerField(required=False)
+    record_start = serializers.DateTimeField(required=False)
+    record_stop = serializers.DateTimeField(required=False)
+    # source = serializers.IntegerField(required=False)
+    destination = serializers.IntegerField(required=False)
+    duration = serializers.CharField(required=False)
 
     class Meta:
         model = Call
-        fields = 'id', 'record_start', 'record_stop', 'source', 'destination', 'callbill'
+        fields = '__all__'
 
 
 class CallApiSerializer(serializers.Serializer):
@@ -33,3 +31,13 @@ class ChargeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Charge
         fields = 'id', 'standing_charge', 'call_charge', 'hour_start', 'hour_stop', 'active'
+
+
+class BillSerializer(serializers.ModelSerializer):
+    price = serializers.FloatField(required=False)
+    bill_call = CallSerializer(many=True, read_only=True )
+    bill_charge = ChargeSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Bill
+        fields = '__all__'

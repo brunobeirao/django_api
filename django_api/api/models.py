@@ -10,19 +10,12 @@ class Call(models.Model):
     record_stop = models.DateTimeField('RECORD_STOP')
     source = models.BigIntegerField('SOURCE')
     destination = models.BigIntegerField('DESTINATION')
+    # call_start_date = models.DateField('CALL_START_DATE')
+    # call_start_time = models.TimeField('CALL_START_TIME')
     duration = models.CharField('DURATION', max_length=10)
 
     class Meta:
-        db_table = 'Call'
-
-
-class Bill(models.Model):
-    id = models.AutoField('ID', primary_key=True)
-    price = models.FloatField('PRICE')
-    call = models.OneToOneField(Call, on_delete=models.CASCADE, blank=True)
-
-    class Meta:
-        db_table = 'Bill'
+        db_table = 'call'
 
 
 class Charge(models.Model):
@@ -35,5 +28,15 @@ class Charge(models.Model):
     create_date = models.DateField('CREATE_DATE', auto_now_add=True)
 
     class Meta:
-        db_table = 'Charge'
+        db_table = 'charge'
         unique_together = ('standing_charge', 'call_charge')
+
+
+class Bill(models.Model):
+    id = models.AutoField('ID', primary_key=True)
+    price = models.FloatField('PRICE')
+    charge = models.ForeignKey(Charge, related_name='bill_charge', on_delete=models.CASCADE)
+    call = models.ForeignKey(Call, related_name='bill_call', on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'bill'

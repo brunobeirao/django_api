@@ -16,6 +16,10 @@ class ApiService:
         self.stop = params.get('stop')
         self.charge = ChargeService.get_charge_activated()
 
+    def get_call(self, telephone_bill, year, month):
+        value = self.get_telephone_bill(telephone_bill, year, month)
+        return value
+
     def process_calls(self):
         try:
             record_start = self.start['record_timestamp']
@@ -30,14 +34,15 @@ class ApiService:
                 'destination': self.start['destination'],
                 'record_start': record_start,
                 'record_stop': record_stop,
-                'duration': duration
+                'duration': duration,
             }
             call = Call(**call)
             call.save()
 
             bill = {
                 'price': price,
-                'call': call
+                'call': call,
+                'charge': self.charge,
             }
             bill = Bill(**bill)
             bill.save()
@@ -95,8 +100,25 @@ class ApiService:
         return time
 
     @staticmethod
-    def get_call(call_id):
-        return Call.objects.filter(id=call_id).select_related('callbill')
+    def get_telephone_bill(telephone_bill, year, month):
+        if not month and not year:
+            last_call = Call.objects.latest('record_stop')
+            year = last_call.record_stop.year
+            month = last_call.record_stop.month
+
+        calls = Bill.objects.filter(call__source=telephone_bill,
+                                    call__record_stop__year=year,
+                                    call__record_stop__month=month) \
+            .values('call__destination', 'call__record_start', 'call__duration', 'price')
+
+        formatted_call_list = []
+        for call in calls:
+            formatted_call = {'destination': call['call__destination'], 'start_date': call['call__record_start'].date(),
+                              'start_time': call['call__record_start'].time(), 'duration': call['call__duration'],
+                              'price': call['price']}
+            formatted_call_list.append(formatted_call)
+
+        return formatted_call_list
 
 
 class ChargeService:

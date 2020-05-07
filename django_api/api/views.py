@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from rest_framework.views import APIView
+from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework import status, generics
 
@@ -26,15 +27,13 @@ class CallProcess(generics.ListCreateAPIView):
 
 class Call(APIView):
     """
-    Return Call by ID
+    Return Call by Phone
     """
-    serializer_class = CallSerializer
-
-    def get(self, request, call_id):
+    @staticmethod
+    def get(request, telephone_number, year, month):
         api = ApiService(request.data)
-        call = api.get_call(call_id)
-        serializer = self.serializer_class(call, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        call = api.get_call(telephone_number, year, month)
+        return Response(call, status=status.HTTP_200_OK)
 
 
 class Charge(generics.ListCreateAPIView):

@@ -41,7 +41,7 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-    'rest_framework_swagger',
+    'drf_yasg',
     'django_nose',
     'rest_framework',
 ]
@@ -127,12 +127,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-SWAGGER_SETTINGS = {
-    'JSON_EDITOR': True,
-}
-
 REST_FRAMEWORK = {
-    # Parser classes priority-wise for Swagger
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.FormParser',
         'rest_framework.parsers.MultiPartParser',
