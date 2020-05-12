@@ -36,7 +36,7 @@ class Bill(models.Model):
     id = models.AutoField('ID', primary_key=True)
     price = models.FloatField('PRICE')
     charge = models.ForeignKey(Charge, related_name='bill_charge', on_delete=models.CASCADE)
-    call = models.ForeignKey(Call, related_name='bill_call', on_delete=models.CASCADE)
+    call = models.OneToOneField(Call, related_name='bill_call', on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'bill'

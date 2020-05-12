@@ -14,15 +14,16 @@ class CallProcess(generics.ListCreateAPIView):
     """
     Process a new call and calculate bills
     """
+    parser_classes = [JSONParser]
+
     serializer_class = CallApiSerializer
     http_method_names = ['post']
 
     def post(self, request):
-        for request in request.data:
-            CallApiSerializer(data=request)
-            api = ApiService(request)
-            api.process_calls()
-        return Response(request, status=status.HTTP_201_CREATED)
+        CallApiSerializer(data=request.data)
+        api = ApiService()
+        api.process_call(request.data)
+        return Response(request.data, status=status.HTTP_201_CREATED)
 
 
 class Call(APIView):

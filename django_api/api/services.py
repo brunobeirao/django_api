@@ -10,44 +10,48 @@ from .models import Call, Bill, Charge
 
 class ApiService:
 
-    def __init__(self, params):
-        self.call_id = params.get('call_id')
-        self.start = params.get('start')
-        self.stop = params.get('stop')
+    def __init__(self):
         self.charge = ChargeService.get_charge_activated()
 
-    def get_call(self, telephone_bill, year, month):
-        value = self.get_telephone_bill(telephone_bill, year, month)
-        return value
-
-    def process_calls(self):
+    def process_call(self, data):
         try:
-            record_start = self.start['record_timestamp']
-            record_stop = self.stop['record_timestamp']
+            for call in data:
+                call_id = call.get('call_id')
+                start = call.get('start')
+                stop = call.get('stop')
 
-            price, days_diff = self.calculate_bills(record_start, record_stop)
-            duration = self.calculate_duration(days_diff)
+                record_start = start['record_timestamp']
+                record_stop = stop['record_timestamp']
 
-            call = {
-                'id': self.call_id,
-                'source': self.start['source'],
-                'destination': self.start['destination'],
-                'record_start': record_start,
-                'record_stop': record_stop,
-                'duration': duration,
-            }
-            call = Call(**call)
-            call.save()
+                price, days_diff = self.calculate_bills(record_start, record_stop)
+                duration = self.calculate_duration(days_diff)
 
-            bill = {
-                'price': price,
-                'call': call,
-                'charge': self.charge,
-            }
-            bill = Bill(**bill)
-            bill.save()
-        except IntegrityError as e:
-            raise IntegrityError(e.args[0])
+                call = {
+                    'id': call_id,
+                    'source': start['source'],
+                    'destination': start['destination'],
+                    'record_start': record_start,
+                    'record_stop': record_stop,
+                    'duration': duration,
+                }
+                call_exists = Call.objects.filter(id=call_id).update(**call)
+
+                if call_exists:
+                    self.update_bill(call_id, price)
+                else:
+                    call = Call(**call)
+                    call.save()
+
+                    bill = {
+                        'price': price,
+                        'call': call,
+                        'charge': self.charge,
+                    }
+                    bill = Bill(**bill)
+                    bill.save()
+
+        except IntegrityError as integrity:
+            raise IntegrityError(integrity.args[0])
         except KeyError as key:
             raise KeyError(key.args[0])
         except Exception as ex:
@@ -119,6 +123,12 @@ class ApiService:
             formatted_call_list.append(formatted_call)
 
         return formatted_call_list
+
+    def get_call(self, telephone_bill, year, month):
+        return self.get_telephone_bill(telephone_bill, year, month)
+
+    def update_bill(self, call_id, price):
+        return Bill.objects.filter(call_id=call_id).update(price=price, charge=self.charge)
 
 
 class ChargeService:
