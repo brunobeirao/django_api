@@ -103,3 +103,9 @@ Swagger docs shows the url and is possible to get and post values.
 - Tests cases.
 - Errors handling
 
+| ID:          | Test Description | Test Text     |
+| :---         |      :----:      |          ---: |
+| Feature      | Title            | Here's this   |
+| Type         | Text             | And more      |
+|              | Title            | Here's this   |
+
